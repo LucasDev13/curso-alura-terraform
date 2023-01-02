@@ -7,24 +7,64 @@ resource "aws_instance" "DEV" {
     "Name" = "dev${count.index}"
   }
 
-  //Vinculação do security group ssh e default nas instancias do ECS
-  # vpc_security_group_ids = ["sg-08eaa00ec7dfed18c", "sg-032e6900f3802fd3a"]
-  vpc_security_group_ids = ["sg-08eaa00ec7dfed18c"]
+  //Vinculação do security group ssh nas instancias do EC2
+  # vpc_security_group_ids = ["sg-0bea1687516d57c93"]
+
+  #Utilizando referencia entre recursos.
+  vpc_security_group_ids = ["${aws_security_group.acesso-ssh.id}"]
 }
 
-# resource "aws_security_group" "acesso-ssh"{
-#   name        = "acesso-ssh"
-#   description = "acesso-ssh"
+resource "aws_instance" "dev4" {
+  ami = "ami-08c40ec9ead489470"
+  instance_type = "t2.micro"
+  key_name = "terraform-aws"
+  tags = {
+    "Name" = "dev4"
+  }
 
-#   ingress {
-#     description      = "acesso-ssh"
-#     from_port        = 22
-#     to_port          = 22
-#     protocol         = "tcp"
-#     cidr_blocks      = ["201.131.86.2/32"]
-#   }
+  #Utilizando referencia entre recursos.
+  vpc_security_group_ids = ["${aws_security_group.acesso-ssh.id}"]
+  depends_on = [aws_s3_bucket.dev4]
+}
 
-#   tags = {
-#     Name = "ssh"
-#   }
-# }
+resource "aws_instance" "dev5" {
+  ami = "ami-08c40ec9ead489470"
+  instance_type = "t2.micro"
+  key_name = "terraform-aws"
+  tags = {
+    "Name" = "dev5"
+  }
+
+  #Utilizando referencia entre recursos.
+  vpc_security_group_ids = ["${aws_security_group.acesso-ssh.id}"]
+}
+
+resource "aws_security_group" "acesso-ssh"{
+  name        = "acesso-ssh"
+  description = "acesso-ssh"
+
+  ingress {
+    description      = "acesso-ssh"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["201.131.137.19/32"]
+  }
+
+  tags = {
+    Name = "ssh"
+  }
+}
+
+resource "aws_s3_bucket" "dev4" {
+  bucket = "lucasdevlabs-dev4"
+
+  tags = {
+    Name = "lucasdevlabs-dev4"
+  }
+}
+
+resource "aws_s3_bucket_acl" "acl-dev4" {
+  bucket = aws_s3_bucket.dev4.id
+  acl    = "private"
+}
